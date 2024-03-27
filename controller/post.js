@@ -38,5 +38,28 @@ const getuserPosts = async (req, res) => {
 };
 
 
+const getFeedPosts = async (req, res) => {
+    try {
+        // Get the user's followers
+        const user = await User.findById(req.params.userId);
+        const friends = user.friends;
 
-module.exports = { createUserPosts, getuserPosts };
+        // Find posts created by the user's followers
+        const feedPosts = await post.find({
+            $or: [
+                { user: { $in: friends } }, // Posts by friends
+                { user: req.params.userId } // Posts by the user themselves
+            ]
+        }).populate('user', 'name');
+
+        res.status(200).json(feedPosts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+
+
+
+module.exports = { createUserPosts, getuserPosts, getFeedPosts };
